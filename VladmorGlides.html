@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vladmor Glides</title>
+
+    <style>
+        body
+        {
+            text-align: center;
+            background-color: #327845;
+        }
+        canvas
+        {
+            background:url("Background.png") no-repeat;
+            background-size: cover;
+            border: 2px solid black;
+        }
+        .flip
+        {
+            transform: scaleX(-1);
+        }
+        
+    </style>
+
+</head>
+<body>
+  
+    <h1>Vladmor Glides</h1>
+    <canvas width="550" height="400"></canvas>
+
+
+    <script>
+
+        var canvas = document.querySelector("canvas");
+        var drawingSurface = canvas.getContext("2d");
+
+        var spriteObject = 
+        {
+            // this is a javascript object variable
+            x : 0,
+            y : 0,
+            width: 64,
+            height : 64
+        };
+ 
+        const speed = 2
+
+        var bird = Object.create(spriteObject);
+        bird.x = 100;
+        bird.y = 100;
+        var image = new Image();
+        image.addEventListener("load", loadHandler, false);
+        image.src = "bird.png";
+        var Xspeed = 1;
+        var Yspeed = 1;
+        var text = "Hello Vladmor";
+
+        function loadHandler()
+        {
+            update();
+        }
+
+        function update()
+        {
+            window.requestAnimationFrame(update, canvas);
+
+            bird.x += Xspeed;
+            bird.y += Yspeed;
+
+            if(bird.width + bird.x > 550)
+        {
+            Xspeed = -1;
+            text = "Going Left";
+        }
+            else if(bird.x < 1)
+        {
+            Xspeed = 1;
+            text = "Going Right";
+        }
+        if(bird.height + bird.y > 400)
+        {
+            Yspeed = -1;
+            text = "Going Up";
+        }
+        else if(bird.y < 1)
+        {
+            Yspeed = 1;
+            text = "Going Down";
+        }
+
+        render();
+
+        }
+
+        function render()
+        {
+            drawingSurface.clearRect(0,0, canvas.width, canvas.height);
+           
+            drawingSurface.save();
+            if (Xspeed > 0) {
+                //flipped when going right
+                drawingSurface.translate(bird.x + bird.width, bird.y);
+                drawingSurface.scale(-1,1);
+                drawingSurface.drawImage(image, 0, 0, bird.width, bird.height);
+            } else {
+                //normal when going left
+                drawingSurface.drawImage(image, Math.floor(bird.x), Math.floor(bird.y), bird.width, bird.height);
+            }
+            drawingSurface.restore();
+
+            drawingSurface.font = "bold 20px Arial"
+            drawingSurface.fillText(text, 10, 30, 200); 
+
+        }
+
+    </script>
+
+
+</body>
+</html>

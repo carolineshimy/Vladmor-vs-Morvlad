@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vladmor vs. Morvlad</title>
+    <style>
+        body
+        {
+            background-color: #327845;
+            text-align: center;
+        }
+        canvas
+        {
+            background: url("Background.png") no-repeat;
+            background-size: cover;
+            border: 2px solid black;
+        }
+        button{
+            color: black;
+            background-color: beige;
+            font-size: 20px;
+            font-family: 'Courier New', Courier, monospace;
+        }
+       
+        button:hover{
+            background-color: yellow;
+        }
+         button.active{
+            background-color: rgb(129, 253, 76);
+        }
+        
+    </style>
+</head>
+<body>
+   
+  
+    <h1>Vladmor vs. Morvlad</h1>
+    <canvas width="550" height="400"></canvas>
+
+<br><br><br>
+
+
+
+<button id="level1" onclick="setSpeed(speed1)" class="active">
+    <b>Level 1</b>
+</button>
+
+<button id="level2" onclick="setSpeed(speed2)">
+    <b>Level 2</b>
+</button>
+
+<button id="level3" onclick="setSpeed(speed3)">
+    <b>Level 3</b>
+</button>
+
+
+
+    <script>
+        var canvas = document.querySelector("canvas");
+        var drawingSurface = canvas.getContext("2d");
+
+
+        const speed1 = 2
+        const speed2 = 4
+        const speed3 = 6
+
+
+        var spriteObject = 
+        {
+            x:0,
+            y:0,
+            width:64,
+            height:64
+        };
+
+        var urlParams = new URLSearchParams(window.location.search);
+        var speed = parseInt(urlParams.get('speed')) || speed1;
+
+        //vladmor
+        var bird = Object.create(spriteObject);
+        bird.x = 100;
+        bird.y = 100;
+        var Xspeed = 0;
+        var Yspeed = 0;
+        var image = new Image();
+        
+        var birdFacingRight = false;
+
+        
+        //morvlad
+        var morvlad = Object.create(spriteObject);
+        morvlad.x = 300;
+        morvlad.y = 200;
+        Xspeed2 = speed;
+        Yspeed2 = speed;
+        var image2 = new Image();
+
+
+        image.addEventListener("load", imageLoadHandler, false);
+        image2.addEventListener("load", imageLoadHandler, false);
+
+        var imagesLoaded = 0;
+        var animationStarted = false;
+       
+        image.src = "bird.png";
+        image2.src = "morvlad.png";
+       
+        var moveLeft = false;
+        var moveRight = false;
+        var moveUp = false;
+        var moveDown = false;
+
+        
+        // Function to change speed
+        function setSpeed(newSpeed) {
+            // Reload page with new speed parameter
+            window.location.href = window.location.pathname + '?speed=' + newSpeed;
+        }
+
+        // Set active button based on current speed
+        window.addEventListener('load', function() {
+            document.getElementById('level1').classList.remove('active');
+            document.getElementById('level2').classList.remove('active');
+            document.getElementById('level3').classList.remove('active');
+            
+            if (speed === speed1) {
+                document.getElementById('level1').classList.add('active');
+            } else if (speed === speed2) {
+                document.getElementById('level2').classList.add('active');
+            } else if (speed === speed3) {
+                document.getElementById('level3').classList.add('active');
+            }
+        });
+
+
+        window.addEventListener("keydown", function(e)
+        {
+                switch(e.key)
+                {
+                    case "ArrowUp":
+                        moveUp = true;
+                        break;
+                     case "ArrowDown":
+                        moveDown = true;
+                        break;
+                     case "ArrowLeft":
+                        moveLeft = true;
+                        break;
+                     case "ArrowRight":
+                        moveRight = true;
+                        break;
+                }
+        }, false);
+
+        window.addEventListener("keyup", function(e)
+        {
+                switch(e.key)
+                {
+                    case "ArrowUp":
+                        moveUp = false;
+                        break;
+                     case "ArrowDown":
+                        moveDown = false;
+                        break;
+                     case "ArrowLeft":
+                        moveLeft = false;
+                        break;
+                     case "ArrowRight":
+                        moveRight = false;
+                        break;
+                }
+        }, false);
+
+
+
+
+
+
+
+   
+
+         function imageLoadHandler()
+        {
+            imagesLoaded++;
+            console.log("Images loaded: " + imagesLoaded);
+            if (imagesLoaded === 2 && !animationStarted){
+                animationStarted = true;
+                update();
+            }
+           
+        }
+
+
+         function checkCollision(bird, morvlad)
+        {
+         return bird.x < morvlad.x + morvlad.width &&        //vladmor's left edge is to the left of morvlad's right edge
+                bird.x + bird.width > morvlad.x &&           //vladmor's right edge is to the right of morvlads left edge
+                bird.y < morvlad.y + morvlad.height &&       //vladmor's top edge is above morvlad's bottom edge
+                bird.y + bird.height > morvlad.y;            //vladmor's bottom edge is below morvlad's top edge
+        }
+
+
+
+
+
+
+        function update()
+        {
+            //create the animation loop
+            window.requestAnimationFrame(update, canvas);
+            bird.x += Xspeed;
+            bird.y += Yspeed;
+
+            //vladmor
+            if(moveUp && !moveDown)
+             {
+                Yspeed = -5;
+             }
+              if(moveDown && !moveUp)
+             {
+                Yspeed = 5;
+             }
+              if(moveLeft && !moveRight)
+             {
+                Xspeed = -5;
+                birdFacingRight = false;
+             }
+              if(moveRight && !moveLeft)
+             {
+                Xspeed = 5;
+                birdFacingRight = true;
+             }
+             if(!moveUp && !moveDown)
+             {
+                Yspeed = 0;
+             }
+             if(!moveLeft && !moveRight)
+             {
+                Xspeed = 0;
+             }
+             if(bird.x < 0)
+             {
+                bird.x = 0;
+             }
+             if(bird.y < 0)
+             {
+                bird.y = 0;
+             }
+             if(bird.x + bird.width > canvas.width)
+             {
+                bird.x = canvas.width - bird.width;
+             }
+             if(bird.y + bird.height > canvas.height)
+             {
+                bird.y = canvas.height - bird.height;
+             }
+
+
+             //morvlad
+            morvlad.x += Xspeed2;
+            morvlad.y += Yspeed2;
+
+            if(morvlad.width + morvlad.x > 550)
+            {
+            Xspeed2 = -speed;
+            }
+            else if(morvlad.x < 1)
+            {
+            Xspeed2 = speed;
+            }
+            if(morvlad.height + morvlad.y > 400)
+            {
+            Yspeed2 = -speed;
+            }
+            else if(morvlad.y < 1)
+            {
+            Yspeed2 = speed;
+            }
+
+             render();
+
+        
+        if (checkCollision(bird, morvlad))
+        {
+         bird.width=0
+         bird.height=0
+        }
+        }
+
+
+
+
+
+
+        function render()
+        {
+            drawingSurface.clearRect(0,0, canvas.width, canvas.height);
+
+           
+
+             drawingSurface.save();
+            if (birdFacingRight) {
+                //flipped when going right
+                drawingSurface.translate(bird.x + bird.width, bird.y);
+                drawingSurface.scale(-1,1);
+                drawingSurface.drawImage(image, 0, 0, bird.width, bird.height);
+            } else {
+                //normal when going left
+                drawingSurface.drawImage(image, Math.floor(bird.x), Math.floor(bird.y), bird.width, bird.height);
+            }
+
+            drawingSurface.restore();
+
+
+
+    //morvlad
+            drawingSurface.save();
+            if (Xspeed2 > 0) {
+                //flipped when going right
+                drawingSurface.translate(morvlad.x + morvlad.width, morvlad.y);
+                drawingSurface.scale(-1,1);
+                drawingSurface.drawImage(image2, 0, 0, morvlad.width, morvlad.height);
+            } else {
+                //normal when going left
+                drawingSurface.drawImage(image2, Math.floor(morvlad.x), Math.floor(morvlad.y), morvlad.width, morvlad.height);
+            }
+
+            drawingSurface.restore();
+
+        }
+
+    </script>
+</body>
+</html>

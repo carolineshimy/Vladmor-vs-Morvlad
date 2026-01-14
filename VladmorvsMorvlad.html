@@ -29,6 +29,31 @@
          button.active{
             background-color: rgb(129, 253, 76);
         }
+        .rows{
+            display: flex;
+            justify-content: space-between;
+        }
+         .cards{
+        width: 100%;
+        margin: 10px 50px;
+        padding: 20px;
+        line-height: 25px;
+        background-color: beige;
+        border: 2px solid black;
+        border-radius: 5px;
+         }
+         .cards h3{
+            margin-top: 0;
+            font-family: 'Courier New', Courier, monospace;
+         }
+         .score-entry{
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 18px;
+            margin: 5px 0;
+         }
+         h1{
+            font-family: 'Courier New', Courier, monospace;
+         }
         
     </style>
 </head>
@@ -74,8 +99,8 @@
             height:64
         };
 
-        var urlParams = new URLSearchParams(window.location.search);
-        var speed = parseInt(urlParams.get('speed')) || speed1;
+        var speed = speed1;
+        var currentLevel = 1;
 
         //vladmor
         var bird = Object.create(spriteObject);
@@ -111,15 +136,137 @@
         var moveUp = false;
         var moveDown = false;
 
+        //timer variables
+        var startTime = Date.now();
+        var elapsedTime = 0;
+        var gameOver = false;
+
+        //hi-score storage
+        function loadHighScores(){
+            try {
+                const stored = localStorage.getItem('vladmor-highscores');
+                if (stored) {
+                    return JSON.parse(stored);
+                }
+            } catch (error) {
+                console.log('No previous High Scores found')
+            }
+            return{
+                level1:[],
+                level2:[],
+                level3:[],
+            };
+        }
+
+        function saveHighScores(scores){
+            try {
+                localStorage.setItem('vladmor-highscores', JSON.stringify(scores));
+            } catch (error) {
+                console.error('Error saving high scores:', error);
+            }
+        }
+
+        function addHighScore(level, time){
+            const scores = loadHighScores();
+            const levelKey = 'level' + level;
+
+            scores[levelKey].push(time);
+            scores[levelKey].sort((a,b) => b-a); //sort in descending order
+            scores[levelKey] = scores[levelKey].slice(0,5); //keep only top 5
+
+            saveHighScores(scores);
+            displayHighScores();
+        }
+        function formatTime(ms) {
+            var seconds = Math.floor(ms / 1000);
+            var minutes = Math.floor(seconds / 60);
+            var displaySeconds = seconds % 60;
+            return minutes + ":" + (displaySeconds < 10 ? "0" : "") + displaySeconds;
+        }
+
+        function displayHighScores() {
+            const scores = loadHighScores();
+            
+            // Display Level 1 scores
+            let html1 = '<h3>Level 1</h3>';
+            if (scores.level1.length === 0) {
+                html1 += '<div class="score-entry">No scores yet</div>';
+            } else {
+                scores.level1.forEach((score, index) => {
+                    html1 += `<div class="score-entry">${index + 1}. ${formatTime(score)}</div>`;
+                });
+            }
+            document.getElementById('card1').innerHTML = html1;
+            
+            // Display Level 2 scores
+            let html2 = '<h3>Level 2</h3>';
+            if (scores.level2.length === 0) {
+                html2 += '<div class="score-entry">No scores yet</div>';
+            } else {
+                scores.level2.forEach((score, index) => {
+                    html2 += `<div class="score-entry">${index + 1}. ${formatTime(score)}</div>`;
+                });
+            }
+            document.getElementById('card2').innerHTML = html2;
+            
+            // Display Level 3 scores
+            let html3 = '<h3>Level 3</h3>';
+            if (scores.level3.length === 0) {
+                html3 += '<div class="score-entry">No scores yet</div>';
+            } else {
+                scores.level3.forEach((score, index) => {
+                    html3 += `<div class="score-entry">${index + 1}. ${formatTime(score)}</div>`;
+                });
+            }
+            document.getElementById('card3').innerHTML = html3;
+        }
+
+
+        //fuction to reset bird position
+         function resetBirds()
+         {
+            bird.x = 100;
+            bird.y = 100;
+            bird.width = 64;
+            bird.height = 64;
+            Xspeed = 0;
+            Yspeed = 0;
+            birdFacingRight = false;
+            moveLeft = false;
+            moveRight = false;
+            moveUp = false;
+            moveDown = false;
+            
+            
+            morvlad.x = 300;
+            morvlad.y = 200;
+            Xspeed2 = speed;
+            Yspeed2 = speed;
+
+            startTime = Date.now();
+            elapsedTime = 0;
+            gameOver = false;
+        }
+
         
         // Function to change speed
         function setSpeed(newSpeed) {
-            // Reload page with new speed parameter
-            window.location.href = window.location.pathname + '?speed=' + newSpeed;
-        }
+           speed = newSpeed;
 
-        // Set active button based on current speed
-        window.addEventListener('load', function() {
+               // Set current level
+           if (speed === speed1) {
+               currentLevel = 1;
+           } else if (speed === speed2) {
+               currentLevel = 2;
+           } else if (speed === speed3) {
+               currentLevel = 3;
+           }
+
+           Xspeed2 = Math.sign(Xspeed2) * speed;
+           Yspeed2 = Math.sign(Yspeed2) * speed; 
+
+        resetBirds();
+
             document.getElementById('level1').classList.remove('active');
             document.getElementById('level2').classList.remove('active');
             document.getElementById('level3').classList.remove('active');
@@ -131,7 +278,7 @@
             } else if (speed === speed3) {
                 document.getElementById('level3').classList.add('active');
             }
-        });
+        }
 
 
         window.addEventListener("keydown", function(e)
@@ -139,15 +286,19 @@
                 switch(e.key)
                 {
                     case "ArrowUp":
+                        e.preventDefault();
                         moveUp = true;
                         break;
                      case "ArrowDown":
+                        e.preventDefault();
                         moveDown = true;
                         break;
                      case "ArrowLeft":
+                        e.preventDefault();
                         moveLeft = true;
                         break;
                      case "ArrowRight":
+                        e.preventDefault();
                         moveRight = true;
                         break;
                 }
@@ -186,6 +337,7 @@
             console.log("Images loaded: " + imagesLoaded);
             if (imagesLoaded === 2 && !animationStarted){
                 animationStarted = true;
+                displayHighScores();
                 update();
             }
            
@@ -200,7 +352,7 @@
                 bird.y + bird.height > morvlad.y;            //vladmor's bottom edge is below morvlad's top edge
         }
 
-
+    
 
 
 
@@ -209,6 +361,12 @@
         {
             //create the animation loop
             window.requestAnimationFrame(update, canvas);
+
+            //update elapsed time
+            if (!gameOver){
+            elapsedTime = Date.now() - startTime;
+            }
+
             bird.x += Xspeed;
             bird.y += Yspeed;
 
@@ -281,10 +439,13 @@
              render();
 
         
-        if (checkCollision(bird, morvlad))
+        if (checkCollision(bird, morvlad) && !gameOver)
         {
          bird.width=0
          bird.height=0
+         gameOver = true;
+
+         addHighScore(currentLevel, elapsedTime);
         }
         }
 
@@ -297,7 +458,21 @@
         {
             drawingSurface.clearRect(0,0, canvas.width, canvas.height);
 
-           
+            drawingSurface.save();
+            drawingSurface.fillStyle = "white";
+            drawingSurface.strokeStyle = "black";
+            drawingSurface.lineWidth = 3;
+            drawingSurface.font = "bold 24px 'Courier New', monospace";
+            
+            var seconds = Math.floor(elapsedTime / 1000);
+            var minutes = Math.floor(seconds / 60);
+            var displaySeconds = seconds % 60;
+            var timerText = minutes + ":" + (displaySeconds < 10 ? "0" : "") + displaySeconds;
+            
+            drawingSurface.strokeText(timerText, 10, 30);
+            drawingSurface.fillText(timerText, 10, 30);
+            drawingSurface.restore();
+
 
              drawingSurface.save();
             if (birdFacingRight) {
@@ -331,5 +506,26 @@
         }
 
     </script>
+
+<br><br><br>
+<h1>Hi-Scores</h1>
+   <div class="rows">
+        <div class="cards" id="card1">
+            <h3>Level 1</h3>
+            <div class="score-entry">Loading...</div>
+        </div>
+
+        <div class="cards" id="card2">
+            <h3>Level 2</h3>
+            <div class="score-entry">Loading...</div>
+        </div>
+
+        <div class="cards" id="card3">
+            <h3>Level 3</h3>
+            <div class="score-entry">Loading...</div>
+        </div>
+    </div> 
+    
+    
 </body>
 </html>
